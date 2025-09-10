@@ -1,103 +1,77 @@
-import Image from "next/image";
+"use client"
+import { useState } from "react"
 
-export default function Home() {
+interface Result {
+  guess: number
+  attempts: number
+  success: boolean
+}
+
+export default function GuessNumberGame() {
+  const [target, setTarget] = useState(() => Math.floor(Math.random() * 100) + 1)
+  const [guess, setGuess] = useState<number | "">("")
+  const [attempts, setAttempts] = useState(0)
+  const [message, setMessage] = useState("")
+  const [results, setResults] = useState<Result[]>([])
+
+  const handleGuess = () => {
+    if (guess === "") return
+    const g = Number(guess)
+    setAttempts((prev) => prev + 1)
+
+    if (g === target) {
+      setMessage(`Rätt! Numret var ${target}. Du klarade det på ${attempts + 1} försök.`)
+      setResults((prev) => [...prev, { guess: g, attempts: attempts + 1, success: true }])
+
+      //start a new game
+      setTarget(Math.floor(Math.random() * 100) + 1)
+      setAttempts(0)
+    } else if (g < target) {
+      setMessage('För lågt! Försök igen.')
+      setResults((prev) => [...prev, { guess: g, attempts: attempts + 1, success: false }])
+    } else {
+      setMessage('För högt! Försök igen.')
+      setResults((prev) => [...prev, { guess: g, attempts: attempts + 1, success: false }])
+    }
+
+    setGuess("")
+  }
+
+  const restartGame = () => {
+    setTarget(Math.floor(Math.random() * 100) + 1)
+    setGuess("")
+    setAttempts(0)
+    setMessage('Spelet har startats om. Gissa ett nytt nummer.')
+    setResults([])
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className='min-h-screen flex flex-col items-center justify-center p-6 bg-pink-300'>
+      <h1 className='text-2xl font-bold mb-4 text-white'>Gissa Numret (1-100)</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+      <div className='flex space-x-2 mb-4'>
+        <input
+          type="number"
+          value={guess}
+          onChange={(e) => setGuess(e.target.value === "" ? "" : Number(e.target.value))}
+          placeholder='Din gissning'
+          className='border border-pink-600 rounded px-3 py-2 w-32 placeholder-pink-600 bg-pink-300 text-pink-600'
+        />
+        <button onClick={handleGuess} className='bg-pink-400 text-white px-4 py-2 rounded hover:bg-pink-200'>Gissa</button>
+        <button onClick={restartGame} className='bg-pink-400 text-white px-4 py-2 rounded hover:bg-pink-200'>Starta Om</button>
+      </div>
+
+      <p className='mb-4 text-white'>{message}</p>
+
+      <h2 className='text-xl font-semibold mb-2 text-white'>Historik</h2>
+      <ul>
+        {results.map((r, i) => (
+          <li key={i} className={`p-2 rounded mb-2 ${r.success ? 'bg-green-200' : 'bg-pink-400'}`}>
+            Försök {r.attempts}: Du gissade {r.guess}{" "}
+            {r.success ? "✅" : "❌"}
+          </li>
+        ))}
+      </ul>
+    </main>
+  )
 }
