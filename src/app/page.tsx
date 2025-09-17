@@ -1,10 +1,17 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface Result {
   guess: number
   attempts: number
   success: boolean
+}
+
+interface Highscore {
+  id: number
+  name: string
+  attempts: number
+  date: string
 }
 
 export default function GuessNumberGame() {
@@ -13,15 +20,49 @@ export default function GuessNumberGame() {
   const [attempts, setAttempts] = useState(0)
   const [message, setMessage] = useState("")
   const [results, setResults] = useState<Result[]>([])
+  const [highscores, setHighscores] = useState<Highscore[]>([])
+  const [playerName, setPlayerName] = useState('')
 
-  const handleGuess = () => {
-    if (guess === "") return
+  //Get highscores from API
+  useEffect(() => {
+    const fetchHighScores = async () => {
+      try {
+        const res = await fetch('/api/highscores')
+        const data = await res.json()
+        setHighscores(data)
+      } catch (error) {
+        console.error('Failed to fetch highscores:', error)
+      }
+    }
+    fetchHighScores()
+  }, [])
+
+  const handleGuess = async () => {
+    if (guess === '') return
     const g = Number(guess)
     setAttempts((prev) => prev + 1)
 
     if (g === target) {
       setMessage(`Rätt! Numret var ${target}. Du klarade det på ${attempts + 1} försök.`)
       setResults((prev) => [...prev, { guess: g, attempts: attempts + 1, success: true }])
+
+      //Save highscore if it's better than existing ones
+      if (playerName.trim() !== '') {
+        try {
+          const res = await fetch('/api/highscores', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: playerName, attempts: attempts + 1 }),
+          })
+
+          if (res.ok) {
+            const newScore = await res.json()
+            setHighscores((prev) => [...prev, newScore].sort((a, b) => a.attempts - b.attempts).slice(0, 10))
+          }
+        } catch (error) {
+          console.error('Failed to save highscore:', error)
+        }
+      }
 
       //start a new game
       setTarget(Math.floor(Math.random() * 100) + 1)
@@ -34,7 +75,7 @@ export default function GuessNumberGame() {
       setResults((prev) => [...prev, { guess: g, attempts: attempts + 1, success: false }])
     }
 
-    setGuess("")
+    setGuess('')
   }
 
   const restartGame = () => {
@@ -67,11 +108,21 @@ export default function GuessNumberGame() {
       <ul>
         {results.map((r, i) => (
           <li key={i} className={`p-2 rounded mb-2 ${r.success ? 'bg-green-200' : 'bg-pink-400'}`}>
-            Försök {r.attempts}: Du gissade {r.guess}{" "}
+            Försök {r.attempts}: Du gissade {r.guess}{' '}
             {r.success ? "✅" : "❌"}
           </li>
         ))}
       </ul>
+
+      <h2 className='text-xl font-semibold mt-6 mb-2 text-white'>Highscore</h2>
+      <ol className='w-64'>
+        {highscores.map((h) => (
+          <li key={h.id} className='bg-white/80 text-pink-700 p-2 rounded mb-2 flex justify-between'>
+            <span>{h.name}</span>
+            <span>{h.attempts} försök</span>
+          </li>
+        ))}
+      </ol>
     </main>
   )
 }
