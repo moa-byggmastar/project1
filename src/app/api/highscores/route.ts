@@ -4,7 +4,7 @@ import { db } from '@/lib/db'
 export async function GET() {
     try {
         const result = await db.query('SELECT * FROM highscores ORDER BY attempts ASC LIMIT 10')
-        return NextResponse.json(result.rows)
+        return NextResponse.json(result.rows) // Eventuellt använd return new Response(result.rows)
     } catch (error) {
         console.error(error)
         return NextResponse.json({ error: 'Failed to fetch highscores' }, { status: 500 })
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
         const { name, attempts } = body
 
         const result = await db.query(
-            'INSERT INTO highscores ( name, attempts, date) VALUES ($1, $2, CURRENT_DATE) RETURNING *',
+            'INSERT INTO highscores ( name, attempts, date) VALUES ($1, $2, CURRENT_DATE) RETURNING *', //Behöver det vara $1 eller räcker ?
             [name, attempts]
         )
 
