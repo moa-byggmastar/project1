@@ -13,7 +13,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
     try {
-        const body = await req.json()
+        const body = await req.json() //Borde det vara utanför try?
         const { name, attempts } = body
 
         const result = await db.query(
