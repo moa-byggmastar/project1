@@ -22,6 +22,7 @@ export default function GuessNumberGame() {
   const [results, setResults] = useState<Result[]>([])
   const [highscores, setHighscores] = useState<Highscore[]>([])
   const [playerName, setPlayerName] = useState('')
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   //Get highscores from API
   useEffect(() => {
@@ -56,6 +57,9 @@ export default function GuessNumberGame() {
 
         if (res.ok) {
           const newScore = await res.json()
+          if (newScore.message == 'Highscore already exists') {
+            return
+          }
           setHighscores((prev) => [...prev, newScore].sort((a, b) => a.attempts - b.attempts).slice(0, 10))
         }
       } catch (error) {
@@ -85,9 +89,29 @@ export default function GuessNumberGame() {
     setResults([])
   }
 
+  if (!isLoggedIn) {
+    return (
+      <main className='min-h-screen flex flex-col items-center justify-center p-6 bg-pink-300'>
+        <h1 className='text-2xl font-bold mb-4 text-white'>Ange ditt namn för att börja spela</h1>
+        <input
+          type="text"
+          value={playerName}
+          onChange={(e) => setPlayerName(e.target.value)}
+          placeholder='Namn: '
+          className='border border-pink-600 rounded px-3 py-2 w-64 placeholder-pink-600 bg-pink-300 text-pink-600 mb-4'
+        />
+        <button
+          onClick={() => { if (playerName.trim() !== "") setIsLoggedIn(true) }}
+          className='bg-pink-400 text-white px-4 py-2 rounded hover:bg-pink-200 hover:text-pink-600'>
+          Börja Spela
+        </button>
+      </main>
+    )
+  }
+
   return (
     <main className='min-h-screen flex flex-col items-center justify-center p-6 bg-pink-300'>
-      <h1 className='text-2xl font-bold mb-4 text-white'>Gissa Numret (1-100)</h1>
+      <h1 className='text-2xl font-bold mb-4 text-white'>Hej {playerName}! Gissa Numret (1-100)</h1>
 
       <div className='flex space-x-2 mb-4'>
         <input
@@ -113,7 +137,6 @@ export default function GuessNumberGame() {
 
       <p className='mb-4 text-white'>{message}</p>
 
-      <h2 className='text-xl font-semibold mb-2 text-white'>Historik</h2>
       <ul>
         {results.map((r, i) => (
           <li

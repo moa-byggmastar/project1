@@ -1,6 +1,6 @@
-import { Client } from 'pg'
+import { Pool } from 'pg'
 
-const db = new Client({
+const db = new Pool({
     user: process.env.PGUSER,
     password: process.env.PGPASSWORD,
     database: process.env.PGDATABASE,

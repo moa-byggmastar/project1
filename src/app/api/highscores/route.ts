@@ -12,16 +12,23 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+    const body = await req.json()
+
     try {
-        const body = await req.json() //Borde det vara utanför try?
         const { name, attempts } = body
 
-        const result = await db.query(
-            'INSERT INTO highscores ( name, attempts, date) VALUES ($1, $2, CURRENT_DATE) RETURNING *', //Behöver det vara $1 eller räcker ?
-            [name, attempts]
-        )
+        const match = await db.query('SELECT * FROM highscores WHERE name = $1 AND attempts = $2', [name, attempts])
+        console.log(match.rows)
 
-        return NextResponse.json(result.rows[0])
+        if (match.rows.length == 0) {
+            const result = await db.query(
+                'INSERT INTO highscores ( name, attempts, date) VALUES ($1, $2, CURRENT_DATE) RETURNING *', [name, attempts])
+
+            return NextResponse.json(result.rows[0])
+        } else {
+            return NextResponse.json({ message: 'Highscore already exists' }, { status: 200 })
+        }
+
     } catch (error) {
         console.error(error)
         return NextResponse.json({ error: 'Failed to save highscore' }, { status: 500 })
