@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 
 export async function GET() {
     try {
-        const result = await db.query('SELECT * FROM highscores ORDER BY attempts ASC LIMIT 100')
+        const result = await db.query('SELECT * FROM highscores ORDER BY attempts ASC LIMIT 10')
         return NextResponse.json(result.rows) // Eventuellt använd return new Response(result.rows)
     } catch (error) {
         console.error(error)
